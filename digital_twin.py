@@ -40,6 +40,8 @@ def simulate(modules: List[Module], runs: int = 1000) -> float:
     Returns the estimated fraction of runs where the data center remains
     operational (i.e. no module failures and utilization < 1).
     """
+    if runs <= 0:
+        raise ValueError("runs must be positive")
     successes = 0
     for _ in range(runs):
         all_ok = True
@@ -53,6 +55,8 @@ def simulate(modules: List[Module], runs: int = 1000) -> float:
 
 
 def build_modules(num_modules: int) -> List[Module]:
+    if num_modules <= 0:
+        raise ValueError("num_modules must be positive")
     modules: List[Module] = []
     for _ in range(num_modules):
         racks = [Rack(power_kw=random.uniform(5, 10), thermal_kw=random.uniform(5, 10)) for _ in range(10)]
@@ -62,9 +66,11 @@ def build_modules(num_modules: int) -> List[Module]:
 
 
 @click.command()
-@click.option("--modules", type=int, default=1, show_default=True, help="Number of modules to simulate.")
-@click.option("--simulation-runs", type=int, default=1000, show_default=True, help="Number of Monte Carlo runs.")
-def main(modules: int, simulation_runs: int) -> None:
+@click.option("--modules", type=click.IntRange(min=1), default=1, show_default=True, help="Number of modules to simulate.")
+@click.option("--simulation-runs", type=click.IntRange(min=1), default=1000, show_default=True, help="Number of Monte Carlo runs.")
+@click.option("--seed", type=int, default=42, show_default=True, help="Seed for the illustrative simulation.")
+def main(modules: int, simulation_runs: int, seed: int) -> None:
+    random.seed(seed)
     data_center = build_modules(modules)
     availability = simulate(data_center, runs=simulation_runs)
     click.echo(f"Estimated availability: {availability * 100:.2f}%")
