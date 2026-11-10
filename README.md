@@ -1,34 +1,29 @@
-# Modular Data Center Digital Twin
+# Modular data center digital twin
 
-This repository implements a simplified digital twin for modular
-containerized data centers.  It models capacity (power, cooling,
-rack space), simulates component failures, and estimates system
-availability under different configurations.  The twin can be used to
-evaluate design changes and understand system behavior without
-deploying physical hardware.
+An illustrative Monte Carlo capacity and failure simulation. Each module
+contains ten randomly sized racks and has 120 kW power and cooling capacity.
+A trial succeeds when every module fits its capacity and avoids a sampled
+failure. Each module has an assumed 1% failure probability per trial.
 
-## Model
-
-Each data center module contains a number of racks, each with a
-certain power draw and thermal profile.  The twin tracks the
-utilization of power and cooling resources, and simulates failures
-such as power supply loss or cooling unit failure.  Monte Carlo
-simulation is used to estimate overall uptime.
-
-## Usage
-
-Install dependencies and run the simulation:
+## Run the example
 
 ```bash
-pip install -r requirements.txt
-python digital_twin.py --modules 2 --simulation-runs 1000
+python -m pip install -r requirements.txt
+python digital_twin.py --modules 2 --simulation-runs 1000 --seed 42
 ```
 
-The script prints estimated availability for the given configuration.
+The CLI prints the fraction of successful simulated trials. Repeating the
+same command and seed reproduces the output. The trial probability has no
+specified time interval, so the result is an illustrative scenario measure.
+Measured facility availability would need time-based failure and recovery
+data.
 
-## Extending
+## Verify
 
-Add more detailed component models (e.g., UPS, chillers), integrate
-real failure statistics, or provide a dashboard to visualize
-utilization over time.  You could also connect this simulation to a
-live monitoring system for predictive maintenance.
+```bash
+python -m pip install pytest
+python -m pytest -q
+```
+
+The tests check deterministic CLI runs and reject nonpositive module or trial
+counts.
