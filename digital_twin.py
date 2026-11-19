@@ -23,6 +23,13 @@ class Module:
     cooling_capacity_kw: float
 
     def utilization(self) -> float:
+        for capacity in (self.power_capacity_kw, self.cooling_capacity_kw):
+            if not math.isfinite(capacity) or capacity <= 0:
+                raise ValueError("Module capacities must be finite and positive")
+        for rack in self.racks:
+            for load in (rack.power_kw, rack.thermal_kw):
+                if not math.isfinite(load) or load < 0:
+                    raise ValueError("Rack loads must be finite and nonnegative")
         total_power = sum(r.power_kw for r in self.racks)
         total_thermal = sum(r.thermal_kw for r in self.racks)
         power_util = total_power / self.power_capacity_kw
@@ -38,15 +45,20 @@ def simulate(modules: List[Module], runs: int = 1000) -> float:
     """Monte Carlo simulation of availability.
 
     Returns the estimated fraction of runs where the data center remains
-    operational (i.e. no module failures and utilization < 1).
+    operational (i.e. no module failures and utilization <= 1).
     """
     if runs <= 0:
         raise ValueError("runs must be positive")
+    if not modules:
+        raise ValueError("At least one module is required")
+    utilizations = [module.utilization() for module in modules]
+    if any(utilization > 1.0 for utilization in utilizations):
+        return 0.0
     successes = 0
     for _ in range(runs):
         all_ok = True
         for module in modules:
-            if module.is_failed() or module.utilization() > 1.0:
+            if module.is_failed():
                 all_ok = False
                 break
         if all_ok:
