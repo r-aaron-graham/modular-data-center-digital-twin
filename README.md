@@ -21,9 +21,9 @@ data.
 ## Verify
 
 ```bash
-python -m pip install pytest
-python -m pytest -q
+python -m unittest discover -s tests -v
 ```
 
-The tests check deterministic CLI runs and reject nonpositive module or trial
-counts.
+The tests cover reproducible CLI output, invalid parameters, and loads at or above capacity.
+A load equal to capacity can operate. Any overload yields zero successful trials.
+The model rejects empty facilities, invalid capacities, and invalid rack loads.
